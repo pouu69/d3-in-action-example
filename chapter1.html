@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <style>
+    svg {
+      height: 500px;
+      width: 500px;
+      border: 1px solid gray;
+    }
+  </style>
+</head>
+<body>
+<div>
+  <svg class="viz">
+  </svg>
+  <svg class="viz1"></svg>
+</div>
+
+<script type="text/javascript">
+  window.onload = function() {
+    function dataViz(incomingData) {
+      var maxPopulation = d3.max(incomingData, function(el) {
+        return parseInt(el.population);
+      });
+      var yScale = d3.scale.linear().domain([0, maxPopulation]).range([0, 460]);
+
+      d3.select("svg.viz").attr("style", "height: 480px; width: 600px;");
+      d3.select("svg.viz")
+        .selectAll("rect")
+        .data(incomingData)
+        .enter()
+        .append("rect")
+        .attr("width", 50)
+        .attr("height", function(d){ return yScale(parseInt(d.population));})
+        .attr("x", function(d,i){return i*60;})
+        .attr("y", function(d){return 480 - yScale(parseInt(d.population));})
+        .style("fill", "blud")
+        .style("stroke", "red")
+        .style("stroke-width", "1px")
+        .style("opacity", .25);
+    }
+
+    function dataViz1(incomingData){
+      var nestedTweets = d3.nest()
+        .key(function(el){return el.user;})
+        .entries(incomingData);
+
+      nestedTweets.forEach(function(el){
+        el.numTweets = el.values.length;
+      });
+
+      var maxTweets = d3.max(nestedTweets, function(el) {return el.numTweets});
+
+      var yScale = d3.scale.linear().domain([0, maxTweets]).range([0, 100]);
+
+      d3.select("svg.viz1")
+        .selectAll("rect")
+        .data(nestedTweets)
+        .enter()
+        .append("rect")
+        .attr("width", 50)
+        .attr("height", function(d){ return yScale(parseInt(d.numTweets));})
+        .attr("x", function(d,i){return i*60;})
+        .attr("y", function(d){return 100 - yScale(parseInt(d.numTweets));})
+        .style("fill", "blud")
+        .style("stroke", "red")
+        .style("stroke-width", "1px")
+        .style("opacity", .25);
+    }
+
+    d3.csv("cities.csv", function(error, data) { dataViz(data); });
+    d3.json("tweets.json", function(error, data){dataViz1(data.tweets);});
+
+  }
+</script>
+</body>
+</html>
